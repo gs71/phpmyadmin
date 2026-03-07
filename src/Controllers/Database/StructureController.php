@@ -457,12 +457,10 @@ final class StructureController implements InvocableController
 
         $defaultStorageEngine = '';
         if ($this->config->config->PropertiesNumColumns < 2) {
-            // MySQL <= 5.5.2
-            $defaultStorageEngine = $this->dbi->fetchValue('SELECT @@storage_engine;');
-            if (! is_string($defaultStorageEngine) || $defaultStorageEngine === '') {
-                // MySQL >= 5.5.3
-                $defaultStorageEngine = $this->dbi->fetchValue('SELECT @@default_storage_engine;');
-            }
+            $default_storage_engine_var = $this->dbi->getVersion() >= 50503
+                ? '@@default_storage_engine'
+                : '@@storage_engine';
+            $defaultStorageEngine = $this->dbi->fetchValue("SELECT $default_storage_engine_var;");
         }
 
         return $html . $this->template->render('database/structure/table_header', [
